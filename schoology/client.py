@@ -44,18 +44,8 @@ class SchoologyClient:
         if path == '/login' and r.status_code == 200:
             self.session.cookies.update(r.cookies.get_dict())
             init_root = etree.fromstring(r.text, parser=etree.HTMLParser(encoding='utf8'))
-            try:
-                self.form_build_id = init_root.xpath("//input[@name='form_build_id']")
-            except AttributeError:
-                pass
-            if self.form_build_id:
-                self.credentials['form_build_id'] = self.form_build_id[0].get('value')
-            try:
-                self.form_id = init_root.xpath("//input[@name='form_id']")
-            except AttributeError:
-                pass
-            if self.form_id:
-                self.credentials['form_id'] = self.form_id[0].get('value')
+            self.credentials['form_build_id'] = init_root.xpath("//input[@name='form_build_id']")[0].get('value')
+            self.credentials['form_id'] = init_root.xpath("//input[@name='form_id']")[0].get('value')
             self.session.post(r.url, data=self.credentials)
         else:
             self.visit_history.append(r)
