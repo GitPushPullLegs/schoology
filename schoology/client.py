@@ -3,6 +3,8 @@ from urllib.parse import urlsplit, urljoin
 
 import requests
 from lxml import etree
+import dateutil.parser
+import re
 
 
 class SchoologyClient:
@@ -55,6 +57,30 @@ class SchoologyClient:
     def is_connected(self):
         return self._connection_status
 
-    def get_usage_analytics(self):
-        response = self.session.get(urljoin(self._HOST, 'school_analytics'))
-        print(response.text) # TODO: - Finish
+    def get_usage_analytics(self, start_date, end_date):
+        with self.session as session:
+            response = session.get(urljoin(self._HOST, 'school_analytics'))
+            authorization = re.findall(r'(?<="jwtToken":")[A-Za-z0-9._-]+(?=",)', response.text)[0]
+            payload = {
+                'start_date': 1611705600,
+                'end_date': 1611705600,
+                'school_id': f"{self.school_id}"
+            }
+            session.headers.update({
+                'accept-language': 'en-US,en;q=0.9',
+                'authorization': 'Bearer ' + authorization,
+                'referer': urljoin(self._HOST, 'school_analytics'),
+                'accept-encoding': 'gzip, deflate, br',
+                'content-length': '70',
+                'content-type': 'application/json',
+                'origin': self._HOST,
+                'sec-fetch-dest': 'empty',
+                'sec-fetch-mode': 'cors',
+                'sec-fetch-site': 'same-origin'
+            })
+            for cookie in session.cookies:
+                print(cookie.name)
+            response = session.post(urljoin(self._HOST, 'usage/exports/school'), json=payload)
+            print(response.text)
+
+
