@@ -42,7 +42,7 @@ class SchoologyClient:
 
     def _event_hooks(self, r, *args, **kwargs):
         scheme, netloc, path, query, frag = urlsplit(r.url)
-        print(r.url)
+        print(r.url, r.status_code)
         if path == '/login' and r.status_code == 200:
             self.session.cookies.update(r.cookies.get_dict())
             init_root = etree.fromstring(r.text, parser=etree.HTMLParser(encoding='utf8'))
