@@ -1,5 +1,6 @@
 from collections import deque
 from urllib.parse import urlsplit, urljoin
+from .seleniumclient import SeleniumClient
 
 import requests
 from lxml import etree
@@ -57,6 +58,12 @@ class SchoologyClient:
     def is_connected(self):
         return self._connection_status
 
+    def get_usage_analytics_cookies(self, session):
+        sending = [{'name': cookie.name, 'value': cookie.value, 'domain': cookie.domain, 'path': cookie.path} for cookie in session.cookies]
+        received = SeleniumClient().get_usage_analytics_cookies(cookies=sending)
+        received = received[1:]
+        return received
+
     def get_usage_analytics(self, start_date, end_date):
         with self.session as session:
             response = session.get(urljoin(self._HOST, 'school_analytics'))
@@ -78,9 +85,12 @@ class SchoologyClient:
                 'sec-fetch-mode': 'cors',
                 'sec-fetch-site': 'same-origin'
             })
+            sele = self.get_usage_analytics_cookies(session=session)
+            session.cookies.clear()
+            [session.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain']) for cookie in sele]
+
+            response = session.post(urljoin(self._HOST, 'usage/exports/school'), json=payload)
             for cookie in session.cookies:
                 print(cookie.name)
-            response = session.post(urljoin(self._HOST, 'usage/exports/school'), json=payload)
-            print(response.text)
 
 
