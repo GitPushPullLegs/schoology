@@ -87,10 +87,17 @@ class SchoologyClient:
             })
             sele = self.get_usage_analytics_cookies(session=session)
             session.cookies.clear()
+            cookie = ' '.join([f'{cookie["name"]}={cookie["value"]};' for cookie in sele])
+            session.headers.update({
+                'cookie': cookie
+            })
+            for header in session.headers:
+                print(header)
             [session.cookies.set(cookie['name'], cookie['value'], domain=cookie['domain']) for cookie in sele]
 
             response = session.post(urljoin(self._HOST, 'usage/exports/school'), json=payload)
-            for cookie in session.cookies:
-                print(cookie.name)
+            print("response")
+            print(response.headers)
+            print(response.json())
 
 
